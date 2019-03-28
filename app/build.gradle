@@ -1,0 +1,73 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "com.yy.appdemo"
+        minSdkVersion 19
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        multiDexEnabled = true
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [AROUTER_MODULE_NAME: project.getName()]
+            }
+        }
+    }
+    signingConfigs {
+        release {
+            storeFile file("D:/project/prt.jks")
+            storePassword "fjxmprt"
+            keyAlias "prt"
+            keyPassword "fjxmprt"
+        }
+    }
+    buildTypes {
+        debug {
+            zipAlignEnabled true
+            minifyEnabled false
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        release {
+            zipAlignEnabled true
+            minifyEnabled true
+            shrinkResources true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    kapt {
+        generateStubs = true
+    }
+
+    android.applicationVariants.all { variant ->
+        variant.outputs.all {
+            def date = new Date().format("yyyyMMdd" , TimeZone.getTimeZone("GMT+08"))
+            if(variant.buildType.name.equals('debug')){
+                outputFileName = "appdemo_debug_${date}_${versionName}.apk"
+            }
+            if(variant.buildType.name.equals('release')){
+                outputFileName = "appdemo_release_${versionName}.apk"
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(path: ':lib_base')
+    implementation project(path: ':lib_service')
+    if (!isBuildModule.toBoolean()) {
+        runtimeOnly project(":app_a")
+        runtimeOnly project(":app_b")
+    }
+    kapt rootProject.ext.dependencies["glide-compiler"]
+    kapt rootProject.ext.dependencies["arouter-compiler"]
+    kapt rootProject.ext.dependencies["room-compiler"]
+}
